@@ -5,6 +5,7 @@ import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
 import axios from 'axios'
 import personsService from './services/persons'
+import Notification from './components/Notification'
 
 const App = () => {
     const [persons, setPersons] = useState([])
@@ -13,6 +14,7 @@ const App = () => {
     const [searchPerson, setSearchPerson] = useState('')
     const [filterPersons, setFilterPersons] = useState(persons)
     const [isSearching, setIsSearching] = useState(false)
+    const [notifMessage, setNotifMessage] = useState(null)
 
     useEffect(() => {
         personsService
@@ -23,6 +25,7 @@ const App = () => {
     console.log('render', persons.length, 'persons');
 
     const checkUnique = (event) => {
+        event.preventDefault()
         console.log("nn", newName);
         const curName = persons.find(e => e.name === newName)
         console.log("curName", curName);
@@ -39,18 +42,40 @@ const App = () => {
             }
             personsService.update(personObject)
                 .then(person => {
-                    setPersons(
-                        persons.map((person) => {
-                            person.id === curName.id ? { ...person, number: personObject.number }
-                                : { ...person }
-                        }
+                    console.log("updating person");
+                    setPersons(prevPersons =>
+                        prevPersons.map(person =>
+                            person.id === curName.id
+                                ? { ...person, number: personObject.number }
+                                : person
+
                         )
                     )
-
                     setNewName("");
                     setNewNumber("");
-
+                    return person
                 })
+                .then(() => {
+                    console.log("updated number");
+                    setNotifMessage(
+                        `Updated ${personObject.name
+                        }`
+                    )
+                    setTimeout(() => {
+                        setNotifMessage(null)
+                    }, 5000)
+                })
+                .catch(error => {
+                    console.log("error with update number promise chain", error.response?.data || error.message)
+                    setNotifMessage(
+                        `Failed to update ${personObject.name
+                        }`
+                    )
+                    setTimeout(() => {
+                        setNotifMessage(null)
+                    }, 5000)
+                }
+                )
         }
         else {
             console.log("not new name");
@@ -77,12 +102,19 @@ const App = () => {
             .create(personObject)
             .then(returnedPerson => {
                 setPersons(persons.concat(returnedPerson))
+                setNotifMessage(
+                    `Added ${personObject.name}`
+                )
+                setTimeout(() => {
+                    setNotifMessage(null)
+                }, 5000)
             })
+
     }
 
     const deletePerson = (id, name) => {
         console.log("delete person");
-        const okDelete = window.confirm(`Delete ${name}?`)
+        const okDelete = window.confirm(`Delete ${name} ? `)
         if (!okDelete) {
             return;
         }
@@ -121,6 +153,7 @@ const App = () => {
     return (
         <div>
             <h2>Phonebook</h2>
+            <Notification message={notifMessage} />
             <Filter searchPerson={searchPerson} handleSearchChange={handleSearchChange} isSearching={isSearching} />
             <h2>Add new person</h2>
             <PersonForm newName={newName} newNumber={newNumber}
