@@ -12,10 +12,10 @@ const App = () => {
     const [newName, setNewName] = useState('')
     const [newNumber, setNewNumber] = useState('')
     const [searchPerson, setSearchPerson] = useState('')
-    const [filterPersons, setFilterPersons] = useState(persons)
     const [isSearching, setIsSearching] = useState(false)
+    const [filterPersons, setFilterPersons] = useState(persons)
     const [notifMessage, setNotifMessage] = useState(null)
-
+    const [isError, setIsError] = useState(false)
     useEffect(() => {
         personsService
             .getAll()
@@ -66,10 +66,11 @@ const App = () => {
                     }, 5000)
                 })
                 .catch(error => {
+                    setIsError(true)
                     console.log("error with update number promise chain", error.response?.data || error.message)
                     setNotifMessage(
-                        `Failed to update ${personObject.name
-                        }`
+                        `Failed to update, ${personObject.name
+                        } has already been removef from server`
                     )
                     setTimeout(() => {
                         setNotifMessage(null)
@@ -153,7 +154,7 @@ const App = () => {
     return (
         <div>
             <h2>Phonebook</h2>
-            <Notification message={notifMessage} />
+            <Notification message={notifMessage} isError={isError} />
             <Filter searchPerson={searchPerson} handleSearchChange={handleSearchChange} isSearching={isSearching} />
             <h2>Add new person</h2>
             <PersonForm newName={newName} newNumber={newNumber}
