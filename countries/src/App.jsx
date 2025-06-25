@@ -15,9 +15,19 @@ const CountryInfo = ({ country }) => {
   )
 }
 
+const CountryList = ({ country, showCountry }) => {
+  console.log("cl", country.name.common);
+  return (
+    <div>
+      <li>{country.name.common}
+        <button onClick={showCountry(country)}>show country</button></li>
+    </div>
+  )
+}
 const App = () => {
   const [country, setCountry] = useState([])
   const [value, setValue] = useState("")
+  const [selectedCountry, setSelectedCountry] = useState(null);
 
   useEffect(() => {
     console.log("effect called, value is now: ", value);
@@ -41,11 +51,26 @@ const App = () => {
   const handleValueChange = (event) => {
     setValue(event.target.value)
   }
+
+  const showCountry = (country) => () => {
+    console.log("showCountry called", country.name.common);
+    setSelectedCountry(country)
+  }
+
+
   return (
     <div>Search country: <input value={value} onChange={handleValueChange} />
       {country.length > 10 && <p>Too many matches, specify country more</p>}
-      {country.length < 10 && country.length > 1 && country.map(country => <p key={country.name.common}>{country.name.common}</p>)}
+      {country.length < 10
+        && country.length > 1
+        && country.map(country =>
+          <CountryList
+            key={country.name.common}
+            country={country}
+            showCountry={showCountry}
+          />)}
       {country.length === 1 && <CountryInfo country={country[0]} />}
+      {selectedCountry && <CountryInfo country={selectedCountry} />}
 
     </div>
   )
